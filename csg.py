@@ -1,39 +1,61 @@
-"""Constructive solid geometry. Owner: Person A
+"""Constructive solid geometry built on A4's Sphere. Owner: Person A
 
-Children must report every interval where the ray is inside them,
-not just the nearest hit.
+A CSG object goes in Scene(surfs) like any other surface: it only needs
+intersect(ray) -> Hit. Internally, children report every interval where
+the ray is inside them, as a list of (t_in, hit_in, t_out, hit_out).
 """
+import numpy as np
+
+from ray import Hit, Sphere, no_hit
 
 
 def sphere_intervals(sphere, ray):
-    # TODO(A): solve the ray-sphere quadratic and return [(t_in, t_out)],
-    # or [] on a miss. Use the A4 sphere's center/radius.
+    # TODO(A): solve the ray-sphere quadratic (same math as A4 Sphere.intersect)
+    # and return [(t0, Hit0, t1, Hit1)] with outward normals, or [] on a miss.
     raise NotImplementedError
 
 
-def halfspace_intervals(point, normal, ray):
-    # TODO(A): interval where the ray is behind the plane (point, normal).
-    # Needed for the Pac-Man mouth wedge (intersection of two half-spaces).
+class HalfSpace:
+    """Everything behind a plane through `point` with outward `normal`."""
+
+    def __init__(self, point, normal, material):
+        self.point, self.normal, self.material = point, normal, material
+
+
+def halfspace_intervals(plane, ray):
+    # TODO(A): one interval: (-inf, plane hit) or (plane hit, inf) depending on
+    # the side the ray starts on; [] or (-inf, inf) if parallel.
+    # Two half-spaces intersected = the Pac-Man mouth wedge.
     raise NotImplementedError
+
+
+def intervals(surf, ray):
+    if isinstance(surf, Sphere):
+        return sphere_intervals(surf, ray)
+    if isinstance(surf, HalfSpace):
+        return halfspace_intervals(surf, ray)
+    if isinstance(surf, CSG):
+        return surf.intervals(ray)
+    raise TypeError(f"CSG does not support {type(surf).__name__}")
 
 
 def combine(op, a, b):
-    # TODO(A): merge two sorted interval lists for "union",
-    # "intersection" or "difference".
+    # TODO(A): merge two sorted interval lists for "union", "intersection",
+    # or "difference". For difference, intervals that come from b must have
+    # their normals flipped.
     raise NotImplementedError
 
 
 class CSG:
-    def __init__(self, op, left, right, material):
+    def __init__(self, op, left, right, material=None):
+        assert op in ("union", "intersection", "difference")
         self.op, self.left, self.right = op, left, right
-        self.material = material
+        self.material = material  # if set, overrides child materials
 
     def intervals(self, ray):
-        # TODO(A): combine(self.op, left intervals, right intervals)
-        raise NotImplementedError
+        return combine(self.op, intervals(self.left, ray), intervals(self.right, ray))
 
     def intersect(self, ray):
-        # TODO(A): first positive t from self.intervals(ray).
-        # Return a hit in A4's format. Flip the normal when the surface
-        # comes from the subtracted (right) shape in a difference.
+        # TODO(A): return the first entry Hit with ray.start <= t <= ray.end
+        # (set hit.material = self.material if given), else no_hit.
         raise NotImplementedError

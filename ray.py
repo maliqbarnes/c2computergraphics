@@ -245,6 +245,9 @@ def shade(ray, hit, scene, lights, depth=0):
     When mirror reflection is being computed, recursion will only proceed to a depth
     of MAX_DEPTH, with zero contribution beyond that depth.
     """
+    # TODO(B) C2: if the material is Glass, return
+    #   hit.material.shade(ray, hit, scene, lights, depth, shade, MAX_DEPTH)
+    # before doing the normal Phong shading below.
     # TODO A4 implement this function
     return vec([0,0,0])
 
