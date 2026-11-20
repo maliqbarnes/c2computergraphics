@@ -28,6 +28,7 @@ PROVENANCE.md     sources for code, assets and packages
 
 ```
 python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 python tools/render_tests.py
 python scenes/final.py
 ```
