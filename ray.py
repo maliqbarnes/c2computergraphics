@@ -359,6 +359,10 @@ class Scene:
 
 MAX_DEPTH = 4
 
+# anti-aliasing: each pixel shoots an AA_SAMPLES x AA_SAMPLES grid of rays and averages them
+# (1 = old behavior, one ray through the center; cost goes up by AA_SAMPLES^2)
+AA_SAMPLES = 2
+
 def shade(ray, hit, scene, lights, depth=0):
     """Compute shading for a ray-surface intersection.
 
@@ -382,9 +386,12 @@ def shade(ray, hit, scene, lights, depth=0):
     if hit.t == np.inf:
         return scene.bg_color
 
-    # TODO(B) C2: if hit.material is a glass.Glass, return
-    #   hit.material.shade(ray, hit, scene, lights, depth, shade, MAX_DEPTH)
-    # here. It has to be before the lights loop: Glass has no k_d/k_s/k_a.
+    # C2: glass doesnt use phong at all (no k_d/k_s/k_a), so hand the whole thing off
+    # to Glass.shade, and do it before the lights loop
+    # (imported here and not at the top bc glass.py imports Ray from this file)
+    from glass import Glass
+    if isinstance(hit.material, Glass):
+      return hit.material.shade(ray, hit, scene, lights, depth, shade, MAX_DEPTH)
     
     color = np.zeros(3)
     for l in lights:
@@ -418,11 +425,19 @@ def render_image(camera, scene, lights, nx, ny):
     # loop over each pixel
     # for each pixel:
     # find the center, ask camera for ray through that point, find whaat the ray hits, shade hit to get color, store color
+    # C2 anti-aliasing: instead of one ray through the pixel center, split the pixel into an
+    # AA_SAMPLES x AA_SAMPLES grid, shoot a ray through the center of each little cell,
+    # and average the colors so edges blend instead of looking like stairs
+    n = AA_SAMPLES
     output = np.zeros((ny, nx, 3), np.float32)
     for i in range(ny):
       for j in range(nx):
-        point_img = np.array([(j + 0.5) / nx, (i + 0.5) / ny])
-        ray = camera.generate_ray(point_img)
-        hit = scene.intersect(ray)
-        output[i,j] = shade(ray,hit,scene,lights)
+        color = np.zeros(3)
+        for si in range(n):
+          for sj in range(n):
+            point_img = np.array([(j + (sj + 0.5) / n) / nx, (i + (si + 0.5) / n) / ny])
+            ray = camera.generate_ray(point_img)
+            hit = scene.intersect(ray)
+            color += shade(ray,hit,scene,lights)
+        output[i,j] = color / (n*n)
     return output
