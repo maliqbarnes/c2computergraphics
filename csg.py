@@ -3,6 +3,14 @@
 A CSG object goes in Scene(surfs) like any other surface: it only needs
 intersect(ray) -> Hit. Internally, children report every interval where
 the ray is inside them, as a list of (t_in, hit_in, t_out, hit_out).
+
+Things to know about our ray.py:
+- Sphere.intersect already has the quadratic; sphere_intervals needs both
+  roots (t0, t1), not just the nearest one.
+- Ray directions are not unit length; that's fine for t, but normalize
+  normals.
+- Shadow rays and reflection rays call Scene.intersect -> CSG.intersect, so
+  respect ray.start / ray.end there or you'll get self-shadowing.
 """
 import numpy as np
 

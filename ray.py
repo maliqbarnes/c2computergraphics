@@ -381,6 +381,10 @@ def shade(ray, hit, scene, lights, depth=0):
     # return tot color
     if hit.t == np.inf:
         return scene.bg_color
+
+    # TODO(B) C2: if hit.material is a glass.Glass, return
+    #   hit.material.shade(ray, hit, scene, lights, depth, shade, MAX_DEPTH)
+    # here. It has to be before the lights loop: Glass has no k_d/k_s/k_a.
     
     color = np.zeros(3)
     for l in lights:

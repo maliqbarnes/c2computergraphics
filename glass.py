@@ -2,7 +2,15 @@
 
 Glass is used as a surface's material, e.g. Sphere(c, r, Glass(1.5)).
 ray.shade() needs one hook so it calls Glass.shade instead of Phong;
-see the TODO(B) at the top of ray.shade.
+see the TODO(B) C2 in ray.shade.
+
+Things to know about our ray.py:
+- Camera.generate_ray does NOT normalize directions; normalize before
+  using reflect/refract/fresnel.
+- Sphere and Triangle normals always point outward, even when the ray
+  starts inside, so Glass.shade decides entering vs. exiting itself.
+- PointLight shadow rays treat glass as opaque (solid shadows). Fine for
+  the demos; mention it as a limitation in the presentation.
 """
 import numpy as np
 
@@ -32,7 +40,8 @@ class Glass:
 
     def shade(self, ray, hit, scene, lights, depth, shade_fn, max_depth):
         # TODO(B):
-        #  1. entering if dot(ray dir, hit.normal) < 0, else flip n and swap n1/n2
+        #  0. d = normalized ray.direction
+        #  1. entering if dot(d, hit.normal) < 0, else flip n and swap n1/n2
         #  2. reflected and refracted rays (offset origins to avoid acne)
         #  3. trace each with scene.intersect + shade_fn(..., depth + 1),
         #     returning black once depth >= max_depth
