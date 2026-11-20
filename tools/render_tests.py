@@ -10,6 +10,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+sys.argv, ARGS = sys.argv[:1], sys.argv[1:]
 
 from PIL import Image
 
@@ -38,4 +39,4 @@ def main(names):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main(ARGS)
