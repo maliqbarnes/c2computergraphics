@@ -33,9 +33,13 @@ def test_ops():
 
 
 def test_difference_normal_flipped():
+    # B-A: ray travels +x, A=[−0.5..+0.5], B=[−0.5..+1.5] roughly.
+    # First hit of B-A is at A's exit (t≈5.5). A's outward normal there
+    # is [+1,0,0] (pointing away from A's center at -0.5).
+    # For a difference we're looking at A's *inside*, so normal flips to [-1,0,0].
     hit = CSG("difference", B, A).intersect(RAY_X)
     assert abs(hit.t - 5.5) < 1e-4
-    assert np.allclose(hit.normal, [1, 0, 0], atol=1e-4)  # inside of A, flipped
+    assert np.allclose(hit.normal, [-1, 0, 0], atol=1e-4)  # inside of A, flipped outward
 
 
 def test_miss_and_halfspace():
